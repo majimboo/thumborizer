@@ -3,6 +3,8 @@ var http = require('http');
 var path = require('path');
 var request = require('request').defaults({ encoding: null }); // force to buffer
 
+// config
+
 // image processing
 var cv = require('opencv');
 var gm = require('gm');
@@ -26,17 +28,9 @@ var app = express();
 
 // all environments
 app.set('port', process.env.PORT || 8888);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-app.use(express.favicon());
 app.use(express.logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded());
 app.use(express.methodOverride());
-app.use(express.cookieParser('your secret here'));
-app.use(express.session());
 app.use(app.router);
-app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
 if ('development' == app.get('env')) {
@@ -61,10 +55,9 @@ app.get('/avatar/:size/:url(*)', function(req, res) {
   // before downloading the image, check if url was already loaded before
   Photo.findOne({ url: url }, function (err, photo) {
     if (err) return handleError(err);
-    console.log(photo);
     // if null then save it
     if (!photo) {
-      newImage(url, res);
+      newImage(url, size, res);
     } else {
       // cached image
       cachedImage(url, photo, size, res);
@@ -85,6 +78,7 @@ function cachedImage(url, photo, size, res) {
   cv.readImage(photo.buffer, function(err, image){
     // do facial detection
     image.detectObject(detection('haarcascade_frontalface_alt.xml'), {}, function(err, faces){
+      console.log(faces);
       // now crop it
       gm(photo.buffer, photo.fileName)
       .crop(faces[0].width + 100, faces[0].height + 100,  faces[0].x,  faces[0].y)
@@ -94,7 +88,7 @@ function cachedImage(url, photo, size, res) {
         .resize(size.width, size.height)
         .toBuffer(function (err, rbuff) {
           // show the output image on the imgBuffer
-          res.setHeader('Content-Type', 'image/jpeg');
+          res.setHeader('Content-Type', photo.fileType);
           res.send(rbuff);
         });
       });
@@ -104,13 +98,14 @@ function cachedImage(url, photo, size, res) {
   // end read image from imgBuffer
 }
 
-function newImage(url, res) {
+function newImage(url, size, res) {
   // get image from url request
   request.get(url, function (error, response, imgBuffer) {
+  var filename = path.basename(url);
 
     // get the image data
     gm(imgBuffer).identify(function (err, data){
-      var filename = path.basename(url);
+      
       var signature = data.Signature;
       var size = data.size;
       var format = data.format;
@@ -118,7 +113,7 @@ function newImage(url, res) {
 
       var photo = new Photo();
       photo.fileName = filename;
-      photo.fileType = format;
+      photo.fileType = 'image/' + format.toLowerCase();
       photo.buffer = imgBuffer;
       photo.signature = signature;
       photo.width = size.width;
@@ -139,12 +134,17 @@ function newImage(url, res) {
         console.log(faces);
 
         // now crop it
-        gm(imgBuffer, 'image.jpg')
-        .crop(faces[0].width, faces[0].height,  faces[0].x,  faces[0].y)
+        gm(imgBuffer, filename)
+        .crop(faces[0].width + 100, faces[0].height + 100,  faces[0].x,  faces[0].y)
         .toBuffer(function (err, buff) {
-          // show the output image on the imgBuffer
-          res.setHeader('Content-Type', 'image/jpeg');
-          res.send(buff);
+          // now that the face is cropped, resize to specified size
+          gm(buff, filename)
+          .resize(size.width, size.height)
+          .toBuffer(function (err, rbuff) {
+            // show the output image on the imgBuffer
+            res.setHeader('Content-Type', 'image/jpeg');
+            res.send(rbuff);
+          });
         });
 
       });
