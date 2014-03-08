@@ -1,6 +1,5 @@
 {
   "name": "Thumborizer",
-  "private": true,
   "version": "0.0.1",
   "description": "a node image processing server",
   "dependencies": {
@@ -11,11 +10,24 @@
     "mongoose": "^3.8.8"
   },
   "scripts": {
-    "start": "node app.js",
-    "debug": "node debug app.js"
+    "start": "node ./bin/thumborizer.js",
+    "debug": "node debug ./bin/thumborizer.js"
   },
-  "main": "app.js",
-  "repository": "",
+  "main": "./lib/main.js",
+  "bin": {
+    "thumborizer": "./bin/thumborizer.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/majimboo/thumborizer.git"
+  },
+  "homepage": "https://majimboo.github.io/thumborizer/",
+  "keywords": [
+    "thumbnail",
+    "graphicsMagick",
+    "opencv"
+  ],  
   "author": "Majid Arif Siddiqui",
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": "https://github.com/majimboo/thumborizer/issues"
 }
