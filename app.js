@@ -167,12 +167,14 @@ function newImage(url, size, res) {
         else {
           // now that the face is cropped, resize to specified size
           gm(imgBuffer, filename)
-          .resize(size.width, size.height)
+          .resize(size.width, size.height, '^') // resize to width but keep the aspect ratio
+          .gravity('Center')
+          .crop(size.width, size.height)
           .toBuffer(function (err, rbuff) {
             // show the output image on the imgBuffer
-            res.setHeader('Content-Type', 'image/jpeg');
+            res.setHeader('Content-Type', photo.fileType);
             res.send(rbuff);
-          });
+          });  
         }
       });
       // end facial detection
