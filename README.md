@@ -16,11 +16,14 @@ Thumborizer
 
 	sudo apt-get install libopencv-dev
 
-#### Usage
+#### Setup
 
     git clone git@github.com:majimboo/thumborizer.git thumborizer
-    cd thumborizer && npm install
-    node app
+    cd thumborizer && npm install -g
+
+#### Usage
+
+	thumborizer -c /path/to/config.json
 
 Now go to your browser
 
