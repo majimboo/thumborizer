@@ -55,7 +55,7 @@ app.get('/avatar/:size/:url(*)', function(req, res) {
 
   // before downloading the image, check if url was already loaded before
   Photo.findOne({ url: url }, function (err, photo) {
-    if (err) return handleError(err);
+    if (err) return console.log(err);
     // if null then save it
     if (!photo) {
       newImage(url, size, res);
@@ -76,20 +76,34 @@ function cachedImage(url, photo, size, res) {
   cv.readImage(photo.buffer, function(err, image){
     // do facial detection
     image.detectObject(detection(config.detection.face), {}, function(err, faces){
-      console.log(faces);
-      // now crop it
-      gm(photo.buffer, photo.fileName)
-      .crop(faces[0].width + 100, faces[0].height + 100,  faces[0].x,  faces[0].y)
-      .toBuffer(function (err, buff) {
+      // do facial detection
+      if (faces.length < 0) {      
+        console.log(faces);
+        // now crop it
+        gm(photo.buffer, photo.fileName)
+        .crop(faces[0].width + 100, faces[0].height + 100, faces[0].x - (100/2),  faces[0].y - (100/2))
+        .toBuffer(function (err, buff) {
+          // now that the face is cropped, resize to specified size
+          gm(buff, photo.fileName)
+          .resize(size.width, size.height) // resize but keep the aspect ratio
+          .toBuffer(function (err, rbuff) {
+            // show the output image on the imgBuffer
+            res.setHeader('Content-Type', photo.fileType);
+            res.send(rbuff);
+          });
+        });
+      }
+      // do good feature deteciotn
+      else {
         // now that the face is cropped, resize to specified size
-        gm(buff, photo.fileName)
-        .resize(size.width, size.height)
+        gm(photo.buffer, photo.fileName)
+        .resize(size.width, size.height) // resize but keep the aspect ratio
         .toBuffer(function (err, rbuff) {
           // show the output image on the imgBuffer
           res.setHeader('Content-Type', photo.fileType);
           res.send(rbuff);
-        });
-      });
+        });        
+      }
     });
     // end facial detection
   });
@@ -99,7 +113,8 @@ function cachedImage(url, photo, size, res) {
 function newImage(url, size, res) {
   // get image from url request
   request.get(url, function (error, response, imgBuffer) {
-  var filename = path.basename(url);
+    var filename = path.basename(url);
+    if (error) return console.log(error)
 
     // get the image data
     gm(imgBuffer).identify(function (err, data){
@@ -128,23 +143,35 @@ function newImage(url, size, res) {
     // read image from imgBuffer
     cv.readImage(imgBuffer, function(err, image){
       // do facial detection
-      image.detectObject(detection('haarcascade_frontalface_alt.xml'), {}, function(err, faces){
-        console.log(faces);
-
-        // now crop it
-        gm(imgBuffer, filename)
-        .crop(faces[0].width + 100, faces[0].height + 100,  faces[0].x,  faces[0].y)
-        .toBuffer(function (err, buff) {
+      image.detectObject(detection(config.detection.face), {}, function(err, faces){
+        // do facial detection
+        if (faces.length < 0) {
+          console.log(faces);
+          // now crop it
+          gm(imgBuffer, filename)
+          .crop(faces[0].width + 100, faces[0].height + 100, faces[0].x - (100/2),  faces[0].y - (100/2))
+          .toBuffer(function (err, buff) {
+            // now that the face is cropped, resize to specified size
+            gm(buff, filename)
+            .resize(size.width, size.height)
+            .toBuffer(function (err, rbuff) {
+              // show the output image on the imgBuffer
+              res.setHeader('Content-Type', 'image/jpeg');
+              res.send(rbuff);
+            });
+          });          
+        }
+        // do good feature detection
+        else {
           // now that the face is cropped, resize to specified size
-          gm(buff, filename)
+          gm(imgBuffer, filename)
           .resize(size.width, size.height)
           .toBuffer(function (err, rbuff) {
             // show the output image on the imgBuffer
             res.setHeader('Content-Type', 'image/jpeg');
             res.send(rbuff);
           });
-        });
-
+        }
       });
       // end facial detection
     });
