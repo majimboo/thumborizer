@@ -1,12 +1,18 @@
 {
-  "name": "application-name",
-  "version": "0.0.1",
+  "name": "Thumborizer",
   "private": true,
-  "scripts": {
-    "start": "node app.js"
-  },
+  "version": "0.0.1",
+  "description": "a node image processing server",
   "dependencies": {
     "express": "3.4.8",
     "ejs": "*"
-  }
+  },
+  "scripts": {
+    "start": "node app.js",
+    "debug": "node debug app.js"
+  },
+  "main": "app.js",
+  "repository": "",
+  "author": "Majid Arif Siddiqui",
+  "license": "MIT"
 }
