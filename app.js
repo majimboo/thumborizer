@@ -172,7 +172,7 @@ function newImage(url, size, res) {
           .crop(size.width, size.height)
           .toBuffer(function (err, rbuff) {
             // show the output image on the imgBuffer
-            res.setHeader('Content-Type', photo.fileType);
+            res.setHeader('Content-Type', 'image/jpeg');
             res.send(rbuff);
           });  
         }
