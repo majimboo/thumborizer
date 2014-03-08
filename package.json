@@ -5,7 +5,11 @@
   "description": "a node image processing server",
   "dependencies": {
     "express": "3.4.8",
-    "ejs": "*"
+    "ejs": "*",
+    "gm": "^1.14.2",
+    "opencv": "^0.4.0",
+    "request": "^2.34.0",
+    "mongoose": "^3.8.8"
   },
   "scripts": {
     "start": "node app.js",
