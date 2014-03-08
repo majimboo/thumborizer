@@ -13,7 +13,8 @@
   },
   "scripts": {
     "start": "node ./bin/thumborizer.js",
-    "debug": "node debug ./bin/thumborizer.js"
+    "debug": "node debug ./bin/thumborizer.js",
+    "test": "expresso test/*"
   },
   "main": "./lib/main.js",
   "bin": {
