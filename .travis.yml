@@ -1,4 +1,8 @@
 language: node_js
 node_js:
+  - "0.11"
   - "0.10"
-services: mongodb
+before_install:
+  - sudo apt-get install graphicsmagick libgraphicsmagick1-dev libopencv-dev
+services: 
+  - mongodb

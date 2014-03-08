@@ -1,6 +1,8 @@
 Thumborizer
 ===========
 
+[![Build Status](https://travis-ci.org/majimboo/thumborizer.png?branch=master)](https://travis-ci.org/majimboo/thumborizer)
+
 ### Install MongoDB
 
 	apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
