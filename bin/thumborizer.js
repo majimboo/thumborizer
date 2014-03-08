@@ -3,10 +3,30 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var pack = require('../package');
+var fs = require('fs');
 var request = require('request').defaults({ encoding: null }); // force to buffer
+var program = require('commander');
+var config = require('../lib/config');
 
-// config
-var config = require('./config.json');
+// commander
+program.version(pack.version)
+  .option("-c --config <configPath>", "Path to config file")
+  .parse(process.argv);
+
+var configPath = program.config;
+if (configPath) {
+    configPath = configPath.indexOf('/') === 0 ? configPath : path.join(process.cwd(), configPath);
+    if (!fs.existsSync(configPath)) {
+        console.log('The configuration file doesn\'t exist.');
+        return program.outputHelp();
+    }
+} else {
+    console.log('You must provide a configuration file.');
+    return program.outputHelp();
+}
+
+config.initialize(configPath);
 
 // image processing
 var cv = require('opencv');
@@ -14,7 +34,7 @@ var gm = require('gm');
 
 // cache
 var mongoose = require('mongoose');
-mongoose.connect(config.database);
+mongoose.connect(config.get('database'));
 var imageSchema = mongoose.Schema({
     fileName: String,
     fileType: String,
@@ -30,7 +50,7 @@ var Photo = mongoose.model('Photo', imageSchema);
 var app = express();
 
 // all environments
-app.set('port', process.env.PORT || config.port);
+app.set('port', process.env.PORT || config.get('port'));
 app.use(express.logger('dev'));
 app.use(express.methodOverride());
 app.use(app.router);
@@ -42,7 +62,7 @@ if ('development' == app.get('env')) {
 
 // facial deteciton
 function detection(algorithm) {
-  return path.join(__dirname, 'face_haar', algorithm + '.xml');
+  return path.join('./face_haar', algorithm + '.xml');
 }
 
 // routing
@@ -77,7 +97,7 @@ function cachedImage(url, photo, size, res) {
   // read image from imgBuffer
   cv.readImage(photo.buffer, function(err, image){
     // do facial detection
-    image.detectObject(detection(config.detection.face), {}, function(err, faces){
+    image.detectObject(detection(config.get('detection').face), {}, function(err, faces){
       // do facial detection
       if (faces.length > 0) {      
         // now crop it
@@ -151,7 +171,7 @@ function newImage(url, size, res) {
     // read image from imgBuffer
     cv.readImage(imgBuffer, function(err, image){
       // do facial detection
-      image.detectObject(detection(config.detection.face), {}, function(err, faces){
+      image.detectObject(detection(config.get('detection').face), {}, function(err, faces){
         // do facial detection
         if (faces.length > 0) {
           console.log('facial_detection:', filename);

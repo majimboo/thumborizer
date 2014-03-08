@@ -1,5 +1,5 @@
 {
-  "name": "Thumborizer",
+  "name": "thumborizer",
   "version": "0.0.1",
   "description": "a node image processing server",
   "dependencies": {
@@ -7,7 +7,9 @@
     "gm": "^1.14.2",
     "opencv": "^0.4.0",
     "request": "^2.34.0",
-    "mongoose": "^3.8.8"
+    "mongoose": "^3.8.8",
+    "commander": "^2.1.0",
+    "lodash": "^2.4.1"
   },
   "scripts": {
     "start": "node ./bin/thumborizer.js",
@@ -26,7 +28,7 @@
     "thumbnail",
     "graphicsMagick",
     "opencv"
-  ],  
+  ],
   "author": "Majid Arif Siddiqui",
   "license": "MIT",
   "bugs": "https://github.com/majimboo/thumborizer/issues"
