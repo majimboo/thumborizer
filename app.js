@@ -97,7 +97,9 @@ function cachedImage(url, photo, size, res) {
       else {
         // now that the face is cropped, resize to specified size
         gm(photo.buffer, photo.fileName)
-        .resize(size.width, size.height) // resize but keep the aspect ratio
+        .resize(size.width, size.height, '^') // resize to width but keep the aspect ratio
+        .gravity('Center')
+        .crop(size.width, size.height)
         .toBuffer(function (err, rbuff) {
           // show the output image on the imgBuffer
           res.setHeader('Content-Type', photo.fileType);
