@@ -4,6 +4,7 @@ var path = require('path');
 var request = require('request').defaults({ encoding: null }); // force to buffer
 
 // config
+var config = require('./config.json');
 
 // image processing
 var cv = require('opencv');
@@ -11,7 +12,7 @@ var gm = require('gm');
 
 // cache
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/thumborizer');
+mongoose.connect(config.database);
 var imageSchema = mongoose.Schema({
     fileName: String,
     fileType: String,
@@ -27,7 +28,7 @@ var Photo = mongoose.model('Photo', imageSchema);
 var app = express();
 
 // all environments
-app.set('port', process.env.PORT || 8888);
+app.set('port', process.env.PORT || config.port);
 app.use(express.logger('dev'));
 app.use(express.methodOverride());
 app.use(app.router);
@@ -39,7 +40,7 @@ if ('development' == app.get('env')) {
 
 // facial deteciton
 function detection(algorithm) {
-  return path.join(__dirname, 'face_haar', algorithm);
+  return path.join(__dirname, 'face_haar', algorithm + '.xml');
 }
 
 // routing
@@ -64,9 +65,6 @@ app.get('/avatar/:size/:url(*)', function(req, res) {
     }
 
   });
-
-
-  
 });
 
 app.get('/meta/:size/:image-url(*)', function() {
@@ -77,7 +75,7 @@ function cachedImage(url, photo, size, res) {
   // read image from imgBuffer
   cv.readImage(photo.buffer, function(err, image){
     // do facial detection
-    image.detectObject(detection('haarcascade_frontalface_alt.xml'), {}, function(err, faces){
+    image.detectObject(detection(config.detection.face), {}, function(err, faces){
       console.log(faces);
       // now crop it
       gm(photo.buffer, photo.fileName)
