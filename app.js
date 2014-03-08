@@ -77,15 +77,17 @@ function cachedImage(url, photo, size, res) {
     // do facial detection
     image.detectObject(detection(config.detection.face), {}, function(err, faces){
       // do facial detection
-      if (faces.length < 0) {      
-        console.log(faces);
+      if (faces.length > 0) {      
         // now crop it
+        console.log(faces);
+        console.log('facial_detection:', photo.fileName);
         gm(photo.buffer, photo.fileName)
         .crop(faces[0].width + 100, faces[0].height + 100, faces[0].x - (100/2),  faces[0].y - (100/2))
         .toBuffer(function (err, buff) {
           // now that the face is cropped, resize to specified size
           gm(buff, photo.fileName)
           .resize(size.width, size.height) // resize but keep the aspect ratio
+          .noProfile()
           .toBuffer(function (err, rbuff) {
             // show the output image on the imgBuffer
             res.setHeader('Content-Type', photo.fileType);
@@ -95,11 +97,13 @@ function cachedImage(url, photo, size, res) {
       }
       // do good feature deteciotn
       else {
+        console.log('feature_detection:', photo.fileName);
         // now that the face is cropped, resize to specified size
         gm(photo.buffer, photo.fileName)
         .resize(size.width, size.height, '^') // resize to width but keep the aspect ratio
         .gravity('Center')
         .crop(size.width, size.height)
+        .noProfile()
         .toBuffer(function (err, rbuff) {
           // show the output image on the imgBuffer
           res.setHeader('Content-Type', photo.fileType);
@@ -147,8 +151,8 @@ function newImage(url, size, res) {
       // do facial detection
       image.detectObject(detection(config.detection.face), {}, function(err, faces){
         // do facial detection
-        if (faces.length < 0) {
-          console.log(faces);
+        if (faces.length > 0) {
+          console.log('facial_detection:', filename);
           // now crop it
           gm(imgBuffer, filename)
           .crop(faces[0].width + 100, faces[0].height + 100, faces[0].x - (100/2),  faces[0].y - (100/2))
@@ -165,6 +169,7 @@ function newImage(url, size, res) {
         }
         // do good feature detection
         else {
+          console.log('feature_detection', filename);
           // now that the face is cropped, resize to specified size
           gm(imgBuffer, filename)
           .resize(size.width, size.height, '^') // resize to width but keep the aspect ratio
