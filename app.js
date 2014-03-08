@@ -54,6 +54,10 @@ app.get('/avatar/:size/:url(*)', function(req, res) {
   var size = req.params.size;
   var url = req.params.url;
 
+  // format the sizes
+  size = size.split("x");
+  size = { width: size[0], height: size[1] }
+
   // before downloading the image, check if url was already loaded before
   Photo.findOne({ url: url }, function (err, photo) {
     if (err) return handleError(err);
@@ -63,7 +67,7 @@ app.get('/avatar/:size/:url(*)', function(req, res) {
       newImage(url, res);
     } else {
       // cached image
-      cachedImage(url, photo, res);
+      cachedImage(url, photo, size, res);
     }
 
   });
@@ -76,18 +80,23 @@ app.get('/meta/:size/:image-url(*)', function() {
 
 });
 
-function cachedImage(url, photo, res) {
+function cachedImage(url, photo, size, res) {
   // read image from imgBuffer
   cv.readImage(photo.buffer, function(err, image){
     // do facial detection
     image.detectObject(detection('haarcascade_frontalface_alt.xml'), {}, function(err, faces){
       // now crop it
       gm(photo.buffer, photo.fileName)
-      .crop(faces[0].width, faces[0].height,  faces[0].x,  faces[0].y)
+      .crop(faces[0].width + 100, faces[0].height + 100,  faces[0].x,  faces[0].y)
       .toBuffer(function (err, buff) {
-        // show the output image on the imgBuffer
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.send(buff);
+        // now that the face is cropped, resize to specified size
+        gm(buff, photo.fileName)
+        .resize(size.width, size.height)
+        .toBuffer(function (err, rbuff) {
+          // show the output image on the imgBuffer
+          res.setHeader('Content-Type', 'image/jpeg');
+          res.send(rbuff);
+        });
       });
     });
     // end facial detection

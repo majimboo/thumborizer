@@ -11,4 +11,10 @@ Thumborizer
 
 #### Usage
 
-    http://localhost:8888/avatar/100x100/image_url_here
+    git clone git@github.com:majimboo/thumborizer.git thumborizer
+    cd thumborizer && npm install
+    node app
+
+Now go to your browser
+
+    http://localhost:8888/avatar/100x100/http://med.stanford.edu/ism/2012/downloads/face-blind-blackwell.jpg
